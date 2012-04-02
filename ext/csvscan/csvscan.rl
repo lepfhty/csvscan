@@ -29,7 +29,7 @@ static ID s_read, s_to_str;
       };
       UnQuotedValue {
           unsigned char ch, *endp;
-          int datalen;
+          size_t datalen;
           datalen = tokend - tokstart;
           endp = tokend - 1;
           while(datalen>0) {
@@ -48,7 +48,7 @@ static ID s_read, s_to_str;
       };
       QuotedValue {
           unsigned char ch, *start_p, *wptr, *rptr;
-          int rest, datalen;
+          size_t rest, datalen;
           start_p = wptr = tokstart;
           rptr = tokstart + 1;
           rest = tokend - tokstart - 2;
@@ -74,7 +74,8 @@ static ID s_read, s_to_str;
 #define BUFSIZE 131072
 
 VALUE csv_scan(VALUE self, VALUE port) {
-    int cs, act, have = 0, nread = 0, curline = 1;
+    int cs, act, curline = 1;
+    size_t have = 0, nread = 0;
     unsigned char *tokstart = NULL, *tokend = NULL, *buf;
     VALUE row, coldata;
     VALUE bufsize = Qnil;
@@ -106,7 +107,7 @@ VALUE csv_scan(VALUE self, VALUE port) {
     while( !done ) {
         VALUE str;
         unsigned char *p = buf + have, *pe;
-        int len, space = buffer_size - have;
+        size_t len, space = buffer_size - have;
 
         if ( space == 0 ) {
             rb_raise(rb_eCSVParseError, "ran out of buffer on line %d.", curline);
@@ -119,8 +120,8 @@ VALUE csv_scan(VALUE self, VALUE port) {
         }
 
         StringValue(str);
-        memcpy( p, RSTRING(str)->ptr, RSTRING(str)->len );
-        len = RSTRING(str)->len;
+        memcpy( p, RSTRING_PTR(str), RSTRING_LEN(str) );
+        len = RSTRING_LEN(str);
         nread += len;
 
         /* If this is the last buffer, tack on an EOF. */
