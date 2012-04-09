@@ -1,3 +1,3 @@
 require "mkmf"
 
-create_makefile("csvscan")
+create_makefile("csvscan/csvscan")

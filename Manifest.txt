@@ -1,5 +1,5 @@
-README.ja
 README.txt
+lib/csvscan.rb
 ext/csvscan/MANIFEST
 ext/csvscan/csvscan.c
 ext/csvscan/csvscan.rl
