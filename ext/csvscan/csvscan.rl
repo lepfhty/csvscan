@@ -30,8 +30,8 @@ static ID s_read, s_to_str;
       UnQuotedValue {
           unsigned char ch, *endp;
           size_t datalen;
-          datalen = tokend - tokstart;
-          endp = tokend - 1;
+          datalen = te - ts;
+          endp = te - 1;
           while(datalen>0) {
               ch = *endp--;
               if (ch==' ' || ch=='\t') {
@@ -43,15 +43,15 @@ static ID s_read, s_to_str;
           if (datalen==0) {
               coldata = Qnil;
           } else {
-              coldata = rb_str_new(tokstart, datalen);
+              coldata = rb_str_new(ts, datalen);
           }
       };
       QuotedValue {
           unsigned char ch, *start_p, *wptr, *rptr;
           size_t rest, datalen;
-          start_p = wptr = tokstart;
-          rptr = tokstart + 1;
-          rest = tokend - tokstart - 2;
+          start_p = wptr = ts;
+          rptr = ts + 1;
+          rest = te - ts - 2;
           datalen = 0;
           while(rest>0) {
               ch = *rptr++;
@@ -76,7 +76,7 @@ static ID s_read, s_to_str;
 VALUE csv_scan(VALUE self, VALUE port) {
     int cs, act, curline = 1;
     size_t have = 0, nread = 0;
-    unsigned char *tokstart = NULL, *tokend = NULL, *buf;
+    unsigned char *ts = NULL, *te = NULL, *buf;
     VALUE row, coldata;
     VALUE bufsize = Qnil;
     int done=0, buffer_size;
@@ -106,7 +106,7 @@ VALUE csv_scan(VALUE self, VALUE port) {
 
     while( !done ) {
         VALUE str;
-        unsigned char *p = buf + have, *pe;
+        unsigned char *p = buf + have, *pe, *eof = 0;
         size_t len, space = buffer_size - have;
 
         if ( space == 0 ) {
@@ -124,9 +124,9 @@ VALUE csv_scan(VALUE self, VALUE port) {
         len = RSTRING_LEN(str);
         nread += len;
 
-        /* If this is the last buffer, tack on an EOF. */
+        /* If this is the last buffer, set EOF to the end of data. */
         if ( len < space ) {
-            p[len++] = 0;
+            eof = pe;
             done = 1;
         }
 
@@ -138,13 +138,13 @@ VALUE csv_scan(VALUE self, VALUE port) {
             rb_raise(rb_eCSVParseError, "parse error on line %d.", curline);
         }
 
-        if ( tokstart == 0 ) {
+        if ( ts == 0 ) {
             have = 0;
         } else {
-            have = pe - tokstart;
-            memmove( buf, tokstart, have );
-            tokend = buf + (tokend - tokstart);
-            tokstart = buf;
+            have = pe - ts;
+            memmove( buf, ts, have );
+            te = buf + (te - ts);
+            ts = buf;
         }
     }
     free(buf);
