@@ -14,7 +14,15 @@ module CSVScan
       if idx_hdr.is_a? String or idx_hdr.is_a? Symbol
         @array[@headers.index(idx_hdr.to_s)]
       else
-        @array[idx_hdr, *args]
+        @array.send(:[], idx_hdr, *args)
+      end
+    end
+
+    def []=(idx_hdr, val, *args)
+      if idx_hdr.is_a? String or idx_hdr.is_a? Symbol
+        @array[@headers.index(idx_hdr.to_s)] = val
+      else
+        @array.send(:[]=, idx_hdr, val, *args)
       end
     end
 
